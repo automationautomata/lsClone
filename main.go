@@ -12,11 +12,13 @@ import (
 	"sync"
 )
 
+// calcSize - вычисление размерности папки.
 func calcSize(lsinfo *lsCloneInfo, path string, wg *sync.WaitGroup, errChan chan error) error {
 	defer wg.Done()
 
 	entries, err := os.ReadDir(path)
 	if err != nil {
+		errChan <- err
 		return err
 	}
 	var inner_wg sync.WaitGroup
@@ -25,11 +27,13 @@ func calcSize(lsinfo *lsCloneInfo, path string, wg *sync.WaitGroup, errChan chan
 			inner_wg.Add(1)
 			go func() {
 				err := calcSize(lsinfo, filepath.Join(path, entry.Name()), &inner_wg, errChan)
-				errChan <- err
+				if err != nil {
+					errChan <- err
+				}
 			}()
 		} else {
 			info, _ := entry.Info()
-			lsinfo.Extend(info.Size())
+			lsinfo.IncreaseBy(info.Size())
 		}
 	}
 	inner_wg.Wait()
@@ -80,14 +84,9 @@ func main() {
 
 		if entry.IsDir() {
 			wg.Add(1)
-			go func() {
-				err = calcSize(lsInfo, filepath.Join(*rootFlag, entry.Name()), &wg, errChan)
-				if err != nil {
-					fmt.Println(err.Error())
-				}
-			}()
+			go calcSize(lsInfo, filepath.Join(*rootFlag, entry.Name()), &wg, errChan)
 		} else {
-			lsInfo.Extend(info.Size())
+			lsInfo.IncreaseBy(info.Size())
 		}
 		table = append(table, lsInfo)
 
@@ -96,7 +95,7 @@ func main() {
 	go func() {
 		if err := <-errChan; err != nil {
 			fmt.Printf("Произошла ошибка: %v\n", err)
-			cancel() // Отмена всех горутин
+			cancel()
 		}
 	}()
 
