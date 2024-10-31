@@ -21,21 +21,23 @@ func calcSize(lsinfo *lsCloneInfo, path string, wg *sync.WaitGroup, errChan chan
 		errChan <- err
 		return err
 	}
+
 	var inner_wg sync.WaitGroup
 	for _, entry := range entries {
 		if entry.IsDir() {
 			inner_wg.Add(1)
-			go func() {
-				err := calcSize(lsinfo, filepath.Join(path, entry.Name()), &inner_wg, errChan)
-				if err != nil {
-					errChan <- err
-				}
-			}()
+			go calcSize(lsinfo, filepath.Join(path, entry.Name()), &inner_wg, errChan)
+
 		} else {
-			info, _ := entry.Info()
+			info, err := entry.Info()
+			if err != nil {
+				errChan <- err
+			}
+
 			lsinfo.IncreaseBy(info.Size())
 		}
 	}
+
 	inner_wg.Wait()
 	return nil
 }
@@ -108,7 +110,6 @@ func main() {
 			return table[i].Size > table[j].Size
 		}
 	})
-
 	var entryType string
 	for _, entry := range table {
 		if entry.IsDir {
