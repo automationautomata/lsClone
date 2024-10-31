@@ -35,6 +35,9 @@ func calcSize(lsinfo *lsCloneInfo, path string, wg *sync.WaitGroup, errChan chan
 			}
 
 			lsinfo.IncreaseBy(info.Size())
+			if err != nil {
+				errChan <- err
+			}
 		}
 	}
 
@@ -82,13 +85,17 @@ func main() {
 
 	for _, entry := range entries {
 		info, _ := entry.Info()
-		lsInfo := &lsCloneInfo{Name: entry.Name(), IsDir: info.IsDir(), Size: 0}
+		lsInfo := &lsCloneInfo{Name: entry.Name(), IsDir: info.IsDir(), size: 0}
 
 		if entry.IsDir() {
 			wg.Add(1)
 			go calcSize(lsInfo, filepath.Join(*rootFlag, entry.Name()), &wg, errChan)
 		} else {
-			lsInfo.IncreaseBy(info.Size())
+			err = lsInfo.IncreaseBy(info.Size())
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
 		}
 		table = append(table, lsInfo)
 
@@ -105,9 +112,9 @@ func main() {
 
 	sort.SliceStable(table, func(i, j int) bool {
 		if sortType {
-			return table[i].Size < table[j].Size
+			return table[i].GetSize() < table[j].GetSize()
 		} else {
-			return table[i].Size > table[j].Size
+			return table[i].GetSize() > table[j].GetSize()
 		}
 	})
 	var entryType string

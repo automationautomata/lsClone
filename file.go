@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"strconv"
 	"sync"
 )
@@ -18,27 +19,35 @@ const GIGABYTE = 1073741824
 type lsCloneInfo struct {
 	Name  string
 	IsDir bool
-	Size  int64
+	size  int64
 	sync.Mutex
 }
 
-// convertSize - возвращает размер, в зависимости от пересечение границы 1 ГБ / 1 МБ / 1 КБ,
+// convertsize - возвращает размер, в зависимости от пересечение границы 1 ГБ / 1 МБ / 1 КБ,
 // в виде строки с указанием единиц измерения.
 func (i *lsCloneInfo) convertSize(prec int) string {
-	if i.Size >= GIGABYTE {
-		return strconv.FormatFloat(float64(i.Size/GIGABYTE), 'f', prec, 64) + " GB"
+	if i.size >= GIGABYTE {
+		return strconv.FormatFloat(float64(i.size/GIGABYTE), 'f', prec, 64) + " GB"
 	}
-	if i.Size >= MEGABYTE {
-		return strconv.FormatFloat(float64(i.Size/MEGABYTE), 'f', prec, 64) + " MB"
+	if i.size >= MEGABYTE {
+		return strconv.FormatFloat(float64(i.size/MEGABYTE), 'f', prec, 64) + " MB"
 	} else {
-		return strconv.FormatFloat(float64(i.Size)/KILOBYTE, 'f', prec, 64) + " KB"
+		return strconv.FormatFloat(float64(i.size)/KILOBYTE, 'f', prec, 64) + " KB"
 	}
-	//return strconv.Itoa(int(i.Size))
+	//return strconv.Itoa(int(i.size))
 }
 
 // IncreaseBy - блокирующее увеличение размера.
-func (i *lsCloneInfo) IncreaseBy(Size int64) {
-	i.Lock()
-	i.Size += Size
-	i.Unlock()
+func (i *lsCloneInfo) IncreaseBy(size int64) error {
+	if i.IsDir || i.size == 0 {
+		i.Lock()
+		i.size += size
+		i.Unlock()
+		return nil
+	}
+	return errors.New("The file size is constant")
+}
+
+func (i *lsCloneInfo) GetSize() int64 {
+	return i.size
 }
