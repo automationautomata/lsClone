@@ -1,121 +1,129 @@
 package main
 
 import (
-	"context"
+	"errors"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
+
+	"golang.org/x/sync/errgroup"
 )
 
 // calcSize - вычисление размерности папки.
-func calcSize(lsinfo *lsCloneInfo, path string, wg *sync.WaitGroup, errChan chan error) error {
-	defer wg.Done()
-
+func calcSize(lsInfo *lsCloneInfo, path string, eg *errgroup.Group) error {
 	entries, err := os.ReadDir(path)
 	if err != nil {
-		errChan <- err
 		return err
 	}
-	var inner_wg sync.WaitGroup
+
 	for _, entry := range entries {
 		if entry.IsDir() {
-			inner_wg.Add(1)
-			go func() {
-				err := calcSize(lsinfo, filepath.Join(path, entry.Name()), &inner_wg, errChan)
-				if err != nil {
-					errChan <- err
-				}
-			}()
+			eg.Go(func() error {
+				return calcSize(lsInfo, filepath.Join(path, entry.Name()), eg)
+			})
 		} else {
-			info, _ := entry.Info()
-			lsinfo.IncreaseBy(info.Size())
+			info, err := entry.Info()
+			if err != nil {
+				return err
+			}
+
+			lsInfo.IncreaseBy(info.Size())
+			if err != nil {
+				return err
+			}
 		}
 	}
-	inner_wg.Wait()
 	return nil
+}
+
+// showFileInfo - выводит на экран информацию,
+// sortType - тип сортировки: true - по возрастанию, false - по убыванию
+func showFileInfo(table []*lsCloneInfo, sortType bool) {
+	sort.SliceStable(table, func(i, j int) bool {
+		if sortType {
+			return table[i].GetSize() < table[j].GetSize()
+		} else {
+			return table[i].GetSize() > table[j].GetSize()
+		}
+	})
+
+	for _, entry := range table {
+		if entry.IsDir {
+			fmt.Print("Folder ")
+		} else {
+			fmt.Print("File ")
+		}
+		fmt.Println(entry.Name, entry.convertSize(2))
+	}
+
+}
+
+func checkInput(rootpath string, sort string) (bool, error) {
+	if rootpath == "" {
+		return false, errors.New("Укажите корневую директорию")
+
+	}
+	if _, err := os.Stat(rootpath); err != nil {
+		return false, errors.New("Корневая директория не существует")
+	}
+
+	switch strings.ToLower(sort) {
+	case "asc":
+		return true, nil
+	case "desc":
+		return true, nil
+	default:
+		return false, errors.New("Указан неверный тип сортировки")
+	}
 }
 
 func main() {
 	rootFlag := flag.String("root", "", "Корневая директория")
-	sortFlag := flag.String("sort", "", "Тип сортировки: asc/desc")
+	sortFlag := flag.String("sort", "ASC", "Тип сортировки: asc/desc")
 	flag.Parse()
 
-	if _, err := os.Stat(*rootFlag); err != nil {
-		fmt.Println("Корневая директория не существует")
+	sortType, err := checkInput(*rootFlag, *sortFlag)
+	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
-	var sortType bool
-	switch strings.ToUpper(*sortFlag) {
-	case "":
-		sortType = true
-		break
-	case "ASC":
-		sortType = true
-		break
-	case "DESC":
-		sortType = false
-		break
-	default:
-		fmt.Println("Указан неверный тип сортировки")
-		return
-	}
-
-	_, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	eg := new(errgroup.Group)
 
 	entries, err := os.ReadDir(*rootFlag)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return
 	}
 
 	var table []*lsCloneInfo
-	var wg sync.WaitGroup
-	errChan := make(chan error)
 
 	for _, entry := range entries {
 		info, _ := entry.Info()
-		lsInfo := &lsCloneInfo{Name: entry.Name(), IsDir: info.IsDir(), Size: 0}
+		lsInfo := &lsCloneInfo{Name: entry.Name(), IsDir: info.IsDir(), size: 0}
 
 		if entry.IsDir() {
-			wg.Add(1)
-			go calcSize(lsInfo, filepath.Join(*rootFlag, entry.Name()), &wg, errChan)
+			eg.Go(func() error {
+				return calcSize(lsInfo, filepath.Join(*rootFlag, entry.Name()), eg)
+			})
 		} else {
-			lsInfo.IncreaseBy(info.Size())
+			err = lsInfo.IncreaseBy(info.Size())
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
 		}
 		table = append(table, lsInfo)
-
 	}
 
-	go func() {
-		if err := <-errChan; err != nil {
-			fmt.Printf("Произошла ошибка: %v\n", err)
-			cancel()
-		}
-	}()
-
-	wg.Wait()
-
-	sort.SliceStable(table, func(i, j int) bool {
-		if sortType {
-			return table[i].Size < table[j].Size
-		} else {
-			return table[i].Size > table[j].Size
-		}
-	})
-
-	var entryType string
-	for _, entry := range table {
-		if entry.IsDir {
-			entryType = "Folder"
-		} else {
-			entryType = "File"
-		}
-		fmt.Println(entryType, entry.Name, entry.convertSize(2))
+	err = eg.Wait()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
 	}
+
+	showFileInfo(table, sortType)
 }
