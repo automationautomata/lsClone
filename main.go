@@ -12,33 +12,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// calcSize - вычисление размерности папки.
-func calcSize(lsInfo *lsCloneInfo, path string, eg *errgroup.Group) error {
-	entries, err := os.ReadDir(path)
-	if err != nil {
-		return err
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			eg.Go(func() error {
-				return calcSize(lsInfo, filepath.Join(path, entry.Name()), eg)
-			})
-		} else {
-			info, err := entry.Info()
-			if err != nil {
-				return err
-			}
-
-			lsInfo.IncreaseBy(info.Size())
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 // showFileInfo - выводит на экран информацию,
 // sortType - тип сортировки: true - по возрастанию, false - по убыванию
 func showFileInfo(table []*lsCloneInfo, sortType bool) {
@@ -80,6 +53,22 @@ func checkInput(rootpath string, sort string) (bool, error) {
 	}
 }
 
+func calcSize(path string, lsInfo *lsCloneInfo) error {
+	return filepath.Walk(path,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if !info.IsDir() {
+				err = lsInfo.IncreaseBy(info.Size())
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+}
+
 func main() {
 	rootFlag := flag.String("root", "", "Корневая директория")
 	sortFlag := flag.String("sort", "ASC", "Тип сортировки: asc/desc")
@@ -107,7 +96,7 @@ func main() {
 
 		if entry.IsDir() {
 			eg.Go(func() error {
-				return calcSize(lsInfo, filepath.Join(*rootFlag, entry.Name()), eg)
+				return calcSize(filepath.Join(*rootFlag, entry.Name()), lsInfo)
 			})
 		} else {
 			err = lsInfo.IncreaseBy(info.Size())
