@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
@@ -12,34 +14,13 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// showFileInfo - выводит на экран информацию,
-// sortType - тип сортировки: true - по возрастанию, false - по убыванию
-func showFileInfo(table []*lsCloneInfo, sortType bool) {
-	sort.SliceStable(table, func(i, j int) bool {
-		if sortType {
-			return table[i].GetSize() < table[j].GetSize()
-		} else {
-			return table[i].GetSize() > table[j].GetSize()
-		}
-	})
-
-	for _, entry := range table {
-		if entry.IsDir {
-			fmt.Print("Folder ")
-		} else {
-			fmt.Print("File ")
-		}
-		fmt.Println(entry.Name, entry.convertSize(2))
-	}
-
-}
-
 func checkInput(rootpath string, sort string) (bool, error) {
 	if rootpath == "" {
 		return false, errors.New("Укажите корневую директорию")
 
 	}
 	if _, err := os.Stat(rootpath); err != nil {
+		fmt.Println(err.Error())
 		return false, errors.New("Корневая директория не существует")
 	}
 
@@ -53,56 +34,36 @@ func checkInput(rootpath string, sort string) (bool, error) {
 	}
 }
 
-func calcSize(path string, lsInfo *lsCloneInfo) error {
-	return filepath.Walk(path,
-		func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			if !info.IsDir() {
-				err = lsInfo.IncreaseBy(info.Size())
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-}
-
-func main() {
-	rootFlag := flag.String("root", "", "Корневая директория")
-	sortFlag := flag.String("sort", "ASC", "Тип сортировки: asc/desc")
-	flag.Parse()
-
-	sortType, err := checkInput(*rootFlag, *sortFlag)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
+func getArray(root string) ([]*lsCloneInfo, error) {
 	eg := new(errgroup.Group)
 
-	entries, err := os.ReadDir(*rootFlag)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
 	var table []*lsCloneInfo
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, entry := range entries {
 		info, _ := entry.Info()
-		lsInfo := &lsCloneInfo{Name: entry.Name(), IsDir: info.IsDir(), size: 0}
+
+		var entryType EntryType
+		if info.IsDir() {
+			entryType = Folder
+		} else {
+			entryType = File
+		}
+
+		lsInfo := &lsCloneInfo{Name: entry.Name(), Type: entryType}
 
 		if entry.IsDir() {
 			eg.Go(func() error {
-				return calcSize(filepath.Join(*rootFlag, entry.Name()), lsInfo)
+				return lsInfo.calcSize(filepath.Join(root, entry.Name()))
 			})
 		} else {
 			err = lsInfo.IncreaseBy(info.Size())
 			if err != nil {
 				fmt.Println(err.Error())
-				return
+				return nil, nil
 			}
 		}
 		table = append(table, lsInfo)
@@ -111,8 +72,74 @@ func main() {
 	err = eg.Wait()
 	if err != nil {
 		fmt.Println(err.Error())
+		return nil, err
+	}
+
+	return table, nil
+}
+
+func handleQuery(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	fmt.Println(r.Form)
+	fmt.Println("path", r.URL.Path)
+	fmt.Println("scheme", r.URL.Scheme)
+	fmt.Println(r.Form["url_long"])
+	for k, v := range r.Form {
+		fmt.Println("key:", k)
+		fmt.Println("val:", strings.Join(v, ""))
+	}
+
+	sortHeader, rootHeader := "asc", ""
+	if r.Form.Has("sort") {
+		sortHeader = r.Form["sort"][0][1 : len(r.Form["sort"][0])-2]
+	}
+	if r.Form.Has("root") {
+		rootHeader = r.Form["root"][0][1 : len(r.Form["root"][0])-2]
+	}
+	fmt.Printf("%#v\n", (rootHeader))
+
+	sortType, err := checkInput(rootHeader, sortHeader)
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
 		return
 	}
 
-	showFileInfo(table, sortType)
+	table, err := getArray(rootHeader)
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
+	sort.SliceStable(table, func(i, j int) bool {
+		if sortType {
+			return table[i].GetSize() < table[j].GetSize()
+		} else {
+			return table[i].GetSize() > table[j].GetSize()
+		}
+	})
+
+	bytes, err := json.Marshal(table)
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+	fmt.Fprintf(w, string(bytes))
+}
+
+func main() {
+	// Get information about the file "main.go"
+	fi, err := os.Stat("main.go")
+	if err != nil {
+		// Handle the error
+		fmt.Println(err)
+		return
+	}
+	// Print the file's size
+	fmt.Println("File size:", fi.Size(), fi.Name())
+
+	http.HandleFunc("/fs", handleQuery)     // устанавливаем обработчик
+	err = http.ListenAndServe(":8086", nil) // устанавливаем порт, который будем слушать
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
 }
