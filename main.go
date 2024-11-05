@@ -59,13 +59,10 @@ func main() {
 	switch strings.ToUpper(*sortFlag) {
 	case "":
 		sortType = true
-		break
 	case "ASC":
 		sortType = true
-		break
 	case "DESC":
 		sortType = false
-		break
 	default:
 		fmt.Println("Указан неверный тип сортировки")
 		return
@@ -117,13 +114,14 @@ func main() {
 			return table[i].GetSize() > table[j].GetSize()
 		}
 	})
-	var entryType string
+
 	for _, entry := range table {
 		if entry.IsDir {
-			entryType = "Folder"
+			fmt.Print("Folder ")
 		} else {
-			entryType = "File"
+			fmt.Print("File ")
 		}
-		fmt.Println(entryType, entry.Name, entry.convertSize(2))
+		fmt.Println(entry.Name, entry.convertSize(2))
+
 	}
 }
