@@ -10,10 +10,10 @@ import (
 const KILOBYTE = 1024
 
 // MEGABYTE - количество байт в Мегабайте.
-const MEGABYTE = 1048576
+const MEGABYTE = 1024 * KILOBYTE
 
 // GIGABYTE - количество байт в Гигабайте.
-const GIGABYTE = 1073741824
+const GIGABYTE = 1024 * MEGABYTE
 
 // lsCloneInfo - содержит информацию для вывода на экран.
 type lsCloneInfo struct {
@@ -27,10 +27,10 @@ type lsCloneInfo struct {
 // в виде строки с указанием единиц измерения.
 func (i *lsCloneInfo) convertSize(prec int) string {
 	if i.size >= GIGABYTE {
-		return strconv.FormatFloat(float64(i.size/GIGABYTE), 'f', prec, 64) + " GB"
+		return strconv.FormatFloat(float64(i.size)/GIGABYTE, 'f', prec, 64) + " GB"
 	}
 	if i.size >= MEGABYTE {
-		return strconv.FormatFloat(float64(i.size/MEGABYTE), 'f', prec, 64) + " MB"
+		return strconv.FormatFloat(float64(i.size)/MEGABYTE, 'f', prec, 64) + " MB"
 	}
 	return strconv.FormatFloat(float64(i.size)/KILOBYTE, 'f', prec, 64) + " KB"
 }

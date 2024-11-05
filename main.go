@@ -1,112 +1,47 @@
 package main
 
 import (
-	"context"
+	"errors"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
+
+	"golang.org/x/sync/errgroup"
 )
 
 // calcSize - вычисление размерности папки.
-func calcSize(lsinfo *lsCloneInfo, path string, wg *sync.WaitGroup, errChan chan error) error {
-	defer wg.Done()
-
+func calcSize(lsInfo *lsCloneInfo, path string, eg *errgroup.Group) error {
 	entries, err := os.ReadDir(path)
 	if err != nil {
-		errChan <- err
 		return err
 	}
 
-	var inner_wg sync.WaitGroup
 	for _, entry := range entries {
 		if entry.IsDir() {
-			inner_wg.Add(1)
-			go calcSize(lsinfo, filepath.Join(path, entry.Name()), &inner_wg, errChan)
-
+			eg.Go(func() error {
+				return calcSize(lsInfo, filepath.Join(path, entry.Name()), eg)
+			})
 		} else {
 			info, err := entry.Info()
 			if err != nil {
-				errChan <- err
+				return err
 			}
 
-			lsinfo.IncreaseBy(info.Size())
+			lsInfo.IncreaseBy(info.Size())
 			if err != nil {
-				errChan <- err
+				return err
 			}
 		}
 	}
-
-	inner_wg.Wait()
 	return nil
 }
 
-func main() {
-	rootFlag := flag.String("root", "", "Корневая директория")
-	sortFlag := flag.String("sort", "", "Тип сортировки: asc/desc")
-	flag.Parse()
-
-	if _, err := os.Stat(*rootFlag); err != nil {
-		fmt.Println("Корневая директория не существует")
-		return
-	}
-
-	var sortType bool
-	switch strings.ToUpper(*sortFlag) {
-	case "":
-		sortType = true
-	case "ASC":
-		sortType = true
-	case "DESC":
-		sortType = false
-	default:
-		fmt.Println("Указан неверный тип сортировки")
-		return
-	}
-
-	_, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	entries, err := os.ReadDir(*rootFlag)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var table []*lsCloneInfo
-	var wg sync.WaitGroup
-	errChan := make(chan error)
-
-	for _, entry := range entries {
-		info, _ := entry.Info()
-		lsInfo := &lsCloneInfo{Name: entry.Name(), IsDir: info.IsDir(), size: 0}
-
-		if entry.IsDir() {
-			wg.Add(1)
-			go calcSize(lsInfo, filepath.Join(*rootFlag, entry.Name()), &wg, errChan)
-		} else {
-			err = lsInfo.IncreaseBy(info.Size())
-			if err != nil {
-				fmt.Println(err.Error())
-				return
-			}
-		}
-		table = append(table, lsInfo)
-
-	}
-
-	go func() {
-		if err := <-errChan; err != nil {
-			fmt.Printf("Произошла ошибка: %v\n", err)
-			cancel()
-		}
-	}()
-
-	wg.Wait()
-
+// showFileInfo - выводит на экран информацию,
+// sortType - тип сортировки: true - по возрастанию, false - по убыванию
+func showFileInfo(table []*lsCloneInfo, sortType bool) {
 	sort.SliceStable(table, func(i, j int) bool {
 		if sortType {
 			return table[i].GetSize() < table[j].GetSize()
@@ -122,6 +57,73 @@ func main() {
 			fmt.Print("File ")
 		}
 		fmt.Println(entry.Name, entry.convertSize(2))
+	}
+
+}
+
+func checkInput(rootpath string, sort string) (bool, error) {
+	if rootpath == "" {
+		return false, errors.New("Укажите корневую директорию")
 
 	}
+	if _, err := os.Stat(rootpath); err != nil {
+		return false, errors.New("Корневая директория не существует")
+	}
+
+	switch strings.ToLower(sort) {
+	case "asc":
+		return true, nil
+	case "desc":
+		return true, nil
+	default:
+		return false, errors.New("Указан неверный тип сортировки")
+	}
+}
+
+func main() {
+	rootFlag := flag.String("root", "", "Корневая директория")
+	sortFlag := flag.String("sort", "ASC", "Тип сортировки: asc/desc")
+	flag.Parse()
+
+	sortType, err := checkInput(*rootFlag, *sortFlag)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	eg := new(errgroup.Group)
+
+	entries, err := os.ReadDir(*rootFlag)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var table []*lsCloneInfo
+
+	for _, entry := range entries {
+		info, _ := entry.Info()
+		lsInfo := &lsCloneInfo{Name: entry.Name(), IsDir: info.IsDir(), size: 0}
+
+		if entry.IsDir() {
+			eg.Go(func() error {
+				return calcSize(lsInfo, filepath.Join(*rootFlag, entry.Name()), eg)
+			})
+		} else {
+			err = lsInfo.IncreaseBy(info.Size())
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+		}
+		table = append(table, lsInfo)
+	}
+
+	err = eg.Wait()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	showFileInfo(table, sortType)
 }
