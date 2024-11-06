@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -8,9 +9,11 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"sort"
 	"strings"
+	"syscall"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -69,9 +72,12 @@ func getArray(root string) ([]*lsCloneInfo, error) {
 	}
 
 	for _, entry := range entries {
-		info, _ := entry.Info()
-		lsInfo := NewlsCloneInfo(entry.Name(), entry.IsDir())
+		info, err := entry.Info()
+		if err != nil {
+			return nil, err
+		}
 
+		lsInfo := NewlsCloneInfo(entry.Name(), entry.IsDir())
 		if entry.IsDir() {
 			eg.Go(func() error {
 				return lsInfo.calcSize(filepath.Join(root, entry.Name()))
@@ -79,8 +85,7 @@ func getArray(root string) ([]*lsCloneInfo, error) {
 		} else {
 			err = lsInfo.IncreaseBy(info.Size())
 			if err != nil {
-				fmt.Println(err.Error())
-				return nil, nil
+				return nil, err
 			}
 		}
 		table = append(table, lsInfo)
@@ -88,7 +93,6 @@ func getArray(root string) ([]*lsCloneInfo, error) {
 
 	err = eg.Wait()
 	if err != nil {
-		fmt.Println(err.Error())
 		return nil, err
 	}
 
@@ -97,23 +101,11 @@ func getArray(root string) ([]*lsCloneInfo, error) {
 
 func handleQuery(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	fmt.Println(r.Form)
-	fmt.Println("path", r.URL.Path)
-	fmt.Println("scheme", r.URL.Scheme)
-	fmt.Println(r.Form["url_long"])
-	for k, v := range r.Form {
-		fmt.Println("key:", k)
-		fmt.Println("val:", strings.Join(v, ""))
+	sortHeader := r.Form.Get("sort")
+	if sortHeader == "" {
+		sortHeader = "asc"
 	}
-
-	sortHeader, rootHeader := "asc", ""
-	if r.Form.Has("sort") {
-		sortHeader = r.Form["sort"][0][1 : len(r.Form["sort"][0])-2]
-	}
-	if r.Form.Has("root") {
-		rootHeader = r.Form["root"][0][1 : len(r.Form["root"][0])-2]
-	}
-	fmt.Printf("%#v\n", (rootHeader))
+	rootHeader := r.Form.Get("root")
 
 	sortType, err := checkInput(rootHeader, sortHeader)
 	if err != nil {
@@ -147,6 +139,8 @@ func main() {
 	portFlag := flag.String("port", "", "Порт, на котором работает сервер")
 	flag.Parse()
 	fmt.Println("Запуск")
+	mainCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	var port string
 	if *portFlag != "" {
@@ -154,16 +148,31 @@ func main() {
 	} else {
 		config, err := readConfig("config.json")
 		if err != nil {
-			fmt.Errorf(err.Error())
+			fmt.Println(err.Error())
 			return
 		}
 		port = config.Port
 	}
 
-	http.HandleFunc("/fs", handleQuery)       // устанавливаем обработчик
-	err := http.ListenAndServe(":"+port, nil) // устанавливаем порт, который будем слушать
-	if err != nil {
-		fmt.Errorf(err.Error())
+	mux := http.NewServeMux()
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: mux,
 	}
-	fmt.Println("Сервер запущен на порту", port)
+	mux.HandleFunc("/fs", handleQuery)
+
+	fmt.Println("Сервер работает на порту", port)
+
+	eg, egCtx := errgroup.WithContext(mainCtx)
+	eg.Go(func() error {
+		return srv.ListenAndServe()
+	})
+	eg.Go(func() error {
+		<-egCtx.Done()
+		return srv.Shutdown(context.Background())
+	})
+
+	if err := eg.Wait(); err != nil {
+		fmt.Printf("exit reason: %s \n", err)
+	}
 }

@@ -29,7 +29,7 @@ type lsCloneInfo struct {
 	Name          string    `josn: name`
 	Type          EntryType `json: type`
 	size          int64
-	ConvertedSize string `json: size`
+	ConvertedSize string `json: ConvertedSize`
 	sync.Mutex
 }
 
