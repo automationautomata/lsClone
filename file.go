@@ -33,6 +33,13 @@ type lsCloneInfo struct {
 	sync.Mutex
 }
 
+func NewlsCloneInfo(name string, isdir bool) *lsCloneInfo {
+	if isdir {
+		return &lsCloneInfo{Name: name, Type: Folder}
+	}
+	return &lsCloneInfo{Name: name, Type: File}
+}
+
 func (i *lsCloneInfo) IsDir() bool {
 	return i.Type == Folder
 }

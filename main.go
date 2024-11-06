@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
-	"log"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -13,6 +14,30 @@ import (
 
 	"golang.org/x/sync/errgroup"
 )
+
+type config struct {
+	Port string `json: port`
+}
+
+func readConfig(path string) (*config, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, errors.New("Файл конфигурации не найден")
+	}
+	defer file.Close()
+
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	config := &config{}
+	err = json.Unmarshal(bytes, &config)
+	if err != nil {
+		return nil, errors.New("Файл конфигурации не найден")
+	}
+	return config, nil
+}
 
 func checkInput(rootpath string, sort string) (bool, error) {
 	if rootpath == "" {
@@ -45,15 +70,7 @@ func getArray(root string) ([]*lsCloneInfo, error) {
 
 	for _, entry := range entries {
 		info, _ := entry.Info()
-
-		var entryType EntryType
-		if info.IsDir() {
-			entryType = Folder
-		} else {
-			entryType = File
-		}
-
-		lsInfo := &lsCloneInfo{Name: entry.Name(), Type: entryType}
+		lsInfo := NewlsCloneInfo(entry.Name(), entry.IsDir())
 
 		if entry.IsDir() {
 			eg.Go(func() error {
@@ -127,19 +144,26 @@ func handleQuery(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// Get information about the file "main.go"
-	fi, err := os.Stat("main.go")
-	if err != nil {
-		// Handle the error
-		fmt.Println(err)
-		return
-	}
-	// Print the file's size
-	fmt.Println("File size:", fi.Size(), fi.Name())
+	portFlag := flag.String("port", "", "Порт, на котором работает сервер")
+	flag.Parse()
+	fmt.Println("Запуск")
 
-	http.HandleFunc("/fs", handleQuery)     // устанавливаем обработчик
-	err = http.ListenAndServe(":8086", nil) // устанавливаем порт, который будем слушать
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+	var port string
+	if *portFlag != "" {
+		port = *portFlag
+	} else {
+		config, err := readConfig("config.json")
+		if err != nil {
+			fmt.Errorf(err.Error())
+			return
+		}
+		port = config.Port
 	}
+
+	http.HandleFunc("/fs", handleQuery)       // устанавливаем обработчик
+	err := http.ListenAndServe(":"+port, nil) // устанавливаем порт, который будем слушать
+	if err != nil {
+		fmt.Errorf(err.Error())
+	}
+	fmt.Println("Сервер запущен на порту", port)
 }
