@@ -6,17 +6,22 @@ import (
 	"path/filepath"
 	"strconv"
 	"sync"
+
+	"golang.org/x/sync/errgroup"
 )
 
-// KILOBYTE - количество байт в Килобайте.
-const KILOBYTE = 1024
+const (
+	// KILOBYTE - количество байт в Килобайте.
+	KILOBYTE = 1024
 
-// MEGABYTE - количество байт в Мегабайте.
-const MEGABYTE = 1024 * KILOBYTE
+	// MEGABYTE - количество байт в Мегабайте.
+	MEGABYTE = 1024 * KILOBYTE
 
-// GIGABYTE - количество байт в Гигабайте.
-const GIGABYTE = 1024 * MEGABYTE
+	// GIGABYTE - количество байт в Гигабайте.
+	GIGABYTE = 1024 * MEGABYTE
+)
 
+// EntryType - тип сущности: папка либо файл
 type EntryType string
 
 const (
@@ -26,11 +31,11 @@ const (
 
 // lsCloneInfo - содержит информацию для вывода на экран.
 type lsCloneInfo struct {
-	Name          string    `josn: name`
-	Type          EntryType `json: type`
-	size          int64
-	ConvertedSize string `json: ConvertedSize`
 	sync.Mutex
+	Name          string    `josn:"Name"`
+	Type          EntryType `json:"Type"`
+	size          int64
+	ConvertedSize string `json:"ConvertedSize"`
 }
 
 func NewlsCloneInfo(name string, isdir bool) *lsCloneInfo {
@@ -40,6 +45,7 @@ func NewlsCloneInfo(name string, isdir bool) *lsCloneInfo {
 	return &lsCloneInfo{Name: name, Type: File}
 }
 
+// IsDir - проверяет является ли сущность директорией
 func (i *lsCloneInfo) IsDir() bool {
 	return i.Type == Folder
 }
@@ -67,7 +73,7 @@ func (i *lsCloneInfo) IncreaseBy(size int64) error {
 	return errors.New("The file size is constant")
 }
 
-// Получить размер файла
+// GetSize - возвращает размер файла в байтах
 func (i *lsCloneInfo) GetSize() int64 {
 	return i.size
 }
@@ -89,4 +95,42 @@ func (i *lsCloneInfo) calcSize(path string) error {
 		i.convertSize(2)
 	}
 	return err
+}
+
+// getEntries - возвращает список с инофрмацией о сущностях в директории root
+func getEntries(root string) ([]*lsCloneInfo, error) {
+	eg := new(errgroup.Group)
+
+	var table []*lsCloneInfo
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range entries {
+		info, err := entry.Info()
+		if err != nil {
+			return nil, err
+		}
+
+		lsInfo := NewlsCloneInfo(entry.Name(), entry.IsDir())
+		if entry.IsDir() {
+			eg.Go(func() error {
+				return lsInfo.calcSize(filepath.Join(root, entry.Name()))
+			})
+		} else {
+			err = lsInfo.IncreaseBy(info.Size())
+			if err != nil {
+				return nil, err
+			}
+		}
+		table = append(table, lsInfo)
+	}
+
+	err = eg.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return table, nil
 }

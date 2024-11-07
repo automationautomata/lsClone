@@ -1,0 +1,97 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+.main {
+    position: relative;
+    display: flex;
+    padding: 0;
+    margin: 0 20%;
+    flex-direction: column;
+}
+.table-container {
+    display: flex;
+    align-items: stretch; 
+    border: 2px solid #0056b3; 
+    border-radius: 1%; 
+    padding: 0; 
+}
+.table-title{
+    border-bottom: 2px solid #0056b3;
+    font-size: medium;
+    cursor: default; 
+    padding: 0 5% 5% 5%;
+}
+.column {
+    flex: 1; 
+    box-sizing: border-box;
+    padding: 0;
+    border-right: 2px solid #0056b3;
+}
+.column:last-child {
+    border: none;
+}
+ul {
+    display:flex;
+    align-items: flex-start;
+    flex-direction: column;  
+    list-style-type: none; 
+    margin: auto;
+    padding-right: 2%; 
+    padding-bottom: 2%; 
+}
+li {
+    cursor: pointer; 
+}
+li:hover {
+    opacity: 70%;
+}
+.sort-button {
+    align-self: start;
+    margin-top: 2%; 
+}
+button {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #007BFF;
+    color: white; 
+    border: none;
+    border-radius: 5px; 
+    cursor: pointer; 
+}
+button:hover {
+    background-color: #0056b3; 
+}
+.navigation {
+    margin: 0 20%;
+    margin-bottom: 20px; 
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.path-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center; 
+}
+.path-container h2 {
+    margin-right: 5%;
+}
+.sep {
+    margin: 0 0.6%;
+    font-size: 150%;
+}
+.path {
+    display: flex;
+    background-color: #d2dadb; 
+    border-radius: 5px; 
+    padding: 2% 2%;
+    margin: 0;
+    cursor: pointer;
+}
+.path font:hover {
+    opacity: 60%;
+}
+.path input {
+    width: 100%;
+}
