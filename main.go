@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,7 +17,8 @@ import (
 )
 
 type config struct {
-	Port string `json: port`
+	Port     string `json:"port"`
+	LogsPath string `json:"logspath"`
 }
 
 func readConfig(path string) (*config, error) {
@@ -46,24 +48,32 @@ func main() {
 	mainCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	var port string
+	config, err := readConfig("config.json")
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	port := config.Port
+
+	file, err := os.OpenFile(config.LogsPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err == nil {
+		log.SetOutput(file)
+	} else {
+		fmt.Println("Не удалось открыть файл логов, используется стандартный stderr")
+	}
+	log.Println("Запуск")
+
 	if *portFlag != "" {
 		port = *portFlag
-	} else {
-		config, err := readConfig("config.json")
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		port = config.Port
 	}
 
 	mux := createQueryHandler("ui/static", "ui/html/index.html")
 	srv := &http.Server{
-		Addr:    ":" + port,
+		Addr:    fmt.Sprint(":", port),
 		Handler: mux,
 	}
 	fmt.Println("Сервер работает на порту", port)
+	log.Println("Сервер работает на порту", port)
 
 	eg, egCtx := errgroup.WithContext(mainCtx)
 	eg.Go(func() error {
@@ -75,6 +85,7 @@ func main() {
 	})
 
 	if err := eg.Wait(); err != nil {
-		fmt.Printf("exit reason: %s \n", err)
+		fmt.Println("exit reason:", err)
+		log.Fatalln("exit reason:", err)
 	}
 }

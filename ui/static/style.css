@@ -12,38 +12,39 @@ body {
 .table-container {
     display: flex;
     align-items: stretch; 
-    border: 2px solid #0056b3; 
-    border-radius: 1%; 
     padding: 0; 
 }
-.table-title{
+.table-container table {
+    cellpadding: 0;
+    cellspacing: 0;
+    overflow: auto;
+
+    text-align: center;
+
+    width: 100%;
+    border: 2px solid #0056b3; 
+    border-radius: 1%; 
+    border-collapse: collapse;
+}
+.table-title {
     border-bottom: 2px solid #0056b3;
     font-size: medium;
     cursor: default; 
     padding: 0 5% 5% 5%;
 }
-.column {
+tbody tr {
     flex: 1; 
-    box-sizing: border-box;
     padding: 0;
-    border-right: 2px solid #0056b3;
+    border: 2px solid #0056b3;
+    padding: 0 2%;
 }
-.column:last-child {
-    border: none;
+thead {
+    cursor: default;
 }
-ul {
-    display:flex;
-    align-items: flex-start;
-    flex-direction: column;  
-    list-style-type: none; 
-    margin: auto;
-    padding-right: 2%; 
-    padding-bottom: 2%; 
-}
-li {
+tbody tr {
     cursor: pointer; 
 }
-li:hover {
+tbody tr:hover {
     opacity: 70%;
 }
 .sort-button {
@@ -68,11 +69,15 @@ button:hover {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    width:100%;
+
 }
 .path-container {
     display: flex;
     flex-direction: row;
     align-items: center; 
+    justify-self: start;
+    justify-content: start;
 }
 .path-container h2 {
     margin-right: 5%;
@@ -91,7 +96,4 @@ button:hover {
 }
 .path font:hover {
     opacity: 60%;
-}
-.path input {
-    width: 100%;
 }

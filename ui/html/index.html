@@ -19,11 +19,6 @@
         <div class="path">
             <font color="blue">alexd</font>
         </div>
-        <div class="sep">/</div>
-        <div class="path path-input">
-            <input id="pathinput" color="blue" placeholder="..."></input>
-        </div>
-
     </div>
     <button id="backbutton">Назад</button>
 </div>
@@ -31,37 +26,36 @@
 
 <div class="main">
     <h2>Список</h2>
-
-    <div class="table-container">    
-        <div class="column">
-            <p class="table-title">Тип</p>
-            <ul>
-                <li>Элемент 1.1</li>
-                <li>Элемент 1.2</li>
-                <li>Элемент 1.3</li>
-            </ul>
-        </div>
-        <div class="column">
-            <p class="table-title">Название</p>
-            <ul>
-                <li>Элемент 2.1</li>
-                <li>Элемент 2.2</li>
-                <li>Элемент 2.3</li>
-            </ul>
-        </div>
-        <div class="column">
-            <p class="table-title">Размер</p>
-            <ul>
-                <li>Элемент 3.1</li>
-                <li>Элемент 3.2</li>
-                <li>Элемент 3.3</li>
-                <li>Элемент 3.3</li>
-                <li>Элемент 3.3</li>
-            </ul>
-        </div>
-    </div>
-
     <button class="sort-button">Сортировать</button>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Тип</th>
+                    <th>Название</th>
+                    <th>Размер</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Элемент 1.1</td>
+                    <td>Элемент 2.1</td>
+                    <td>Элемент 3.1</td>
+                </tr>
+                <tr>
+                    <td>Элемент 1.2</td>
+                    <td>Элемент 2.2</td>
+                    <td>Элемент 3.2</td>
+                </tr>
+                <tr>
+                    <td>Элемент 1.3</td>
+                    <td>Элемент 2.3</td>
+                    <td>Элемент 3.3</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 

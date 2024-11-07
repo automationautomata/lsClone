@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -42,13 +43,15 @@ func getInfo(w http.ResponseWriter, r *http.Request) {
 
 	sortType, err := checkInput(rootHeader, sortHeader)
 	if err != nil {
-		fmt.Fprintf(w, err.Error())
+		fmt.Fprintln(w, err.Error())
+		log.Fatalln(w, err.Error())
 		return
 	}
 
 	table, err := getEntries(rootHeader)
 	if err != nil {
-		fmt.Fprintf(w, err.Error())
+		fmt.Fprintln(w, err.Error())
+		log.Fatalln(w, err.Error())
 		return
 	}
 
@@ -62,28 +65,23 @@ func getInfo(w http.ResponseWriter, r *http.Request) {
 
 	bytes, err := json.Marshal(table)
 	if err != nil {
-		fmt.Fprintf(w, err.Error())
+		fmt.Fprintln(w, err.Error())
+		log.Fatalln(w, err.Error())
 		return
 	}
-	fmt.Fprintf(w, string(bytes))
+	fmt.Fprintln(w, string(bytes))
 }
 
-type QueryHandler struct {
-	http.ServeMux
-	tpl *template.Template
-}
-
-func (q *QueryHandler) Tmp(w http.ResponseWriter, r *http.Request) {
-	q.tpl.Execute(w, nil)
-}
-
-func createQueryHandler(staticsDir string, htmlPath string) *QueryHandler {
-	handler := &QueryHandler{tpl: template.Must(template.ParseFiles(htmlPath))}
+func createQueryHandler(staticsDir string, htmlPath string) *http.ServeMux {
+	mux := http.NewServeMux()
+	tpl := template.Must(template.ParseFiles(htmlPath))
 
 	fs := http.FileServer(http.Dir(staticsDir))
 	staticsPrefix := fmt.Sprint("/", filepath.Base(staticsDir), "/")
-	handler.Handle(staticsPrefix, http.StripPrefix(staticsPrefix, fs))
+	mux.Handle(staticsPrefix, http.StripPrefix(staticsPrefix, fs))
 
-	handler.HandleFunc("/", handler.Tmp)
-	return handler
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		tpl.Execute(w, nil)
+	})
+	return mux
 }
