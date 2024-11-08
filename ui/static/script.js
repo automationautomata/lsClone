@@ -3,17 +3,25 @@ var currentsort = "asc";
 const pathseparator = '/';
 
 function fillTable(entriesInfo) {
-    console.log(entriesInfo);
+    var errorprint = document.getElementById("errorprint")
 
-    if ("Error" in entriesInfo){
-        alert(entriesInfo["Error"])
+    if (entriesInfo && "Error" in entriesInfo){
+        errorprint.innerHTML = entriesInfo["Error"]
+        errorprint.parentElement.style.display = "flex"
         return false
+    } 
+    else {
+        errorprint.parentElement.style.display = "none";
     }
-    console.log(entriesInfo);
-    console.log(entriesInfo, document.getElementsByTagName("tbody"));
+
     tableBody = document.getElementsByTagName("tbody")[0];
     if (tableBody.innerHTML !== "") {
         tableBody.innerHTML = ""
+    }
+
+    console.log(entriesInfo);
+    if (!entriesInfo) {
+        return
     }
     for(var i = 0; i < entriesInfo.length; i++) {
         var newRow = document.createElement('tr');
@@ -29,8 +37,12 @@ function fillTable(entriesInfo) {
                 next_name = event.currentTarget.children[1].innerText    
                 GetEntries(currentroot+pathseparator+next_name, "", (data) => {
                     var res = fillTable(data)
+                    backbutton = document.getElementById("backbutton")
 
                     if (res === true) {
+                        if (backbutton.style.visibility === 'hidden') {
+                            backbutton.style.visibility = "visible";
+                        }
                         folders = document.getElementsByClassName("folder-name")
                         last_folder = folders[folders.length - 1]
 
@@ -41,12 +53,12 @@ function fillTable(entriesInfo) {
                                                     next_name + 
                                                 '</font>' +
                                             '</div>' +
-                                    '</div>';
+                                       '</div>';
 
                         last_folder.insertAdjacentHTML("afterend", next_folder);
-                        console.log(next_name)
                         currentroot += pathseparator+next_name
-                    }
+                        console.log(currentroot)
+                    } 
                 })
             }
         })
@@ -100,6 +112,9 @@ window.addEventListener("load", (event) => {
                 last.remove();      
 
                 currentroot = prevroot;
+            }
+            else {
+                backbutton.style.visibility = 'hidden';
             }
         })
     });    
