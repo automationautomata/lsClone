@@ -13,12 +13,12 @@ import (
 	"text/template"
 )
 
-func checkInput(rootpath string, sort string) (bool, error) {
-	if rootpath == "" {
+func checkInput(path string, sort string) (bool, error) {
+	if path == "" {
 		return false, errors.New("Укажите корневую директорию")
 
 	}
-	if _, err := os.Stat(rootpath); err != nil {
+	if _, err := os.Stat(path); err != nil {
 		fmt.Println(err.Error())
 		return false, errors.New("Корневая директория не существует")
 	}
@@ -27,13 +27,13 @@ func checkInput(rootpath string, sort string) (bool, error) {
 	case "asc":
 		return true, nil
 	case "desc":
-		return true, nil
+		return false, nil
 	default:
 		return false, errors.New("Указан неверный тип сортировки")
 	}
 }
 
-func getInfo(w http.ResponseWriter, r *http.Request) {
+func getEntriesTableHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	sortHeader := r.Form.Get("sort")
 	if sortHeader == "" {
@@ -48,11 +48,14 @@ func getInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	table, err := getEntries(rootHeader)
+	table, err := getEntriesTable(rootHeader)
 	if err != nil {
 		fmt.Fprintln(w, err.Error())
 		log.Fatalln(w, err.Error())
 		return
+	}
+	for i := range table {
+		table[i].convertSize(2)
 	}
 
 	sort.SliceStable(table, func(i, j int) bool {
@@ -69,6 +72,7 @@ func getInfo(w http.ResponseWriter, r *http.Request) {
 		log.Fatalln(w, err.Error())
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintln(w, string(bytes))
 }
 
@@ -83,5 +87,7 @@ func createQueryHandler(staticsDir string, htmlPath string) *http.ServeMux {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		tpl.Execute(w, nil)
 	})
+	mux.HandleFunc("/fs", getEntriesTableHandler)
+
 	return mux
 }

@@ -64,36 +64,42 @@ button:hover {
     background-color: #0056b3; 
 }
 .navigation {
+    position: relative;
     margin: 0 20%;
     margin-bottom: 20px; 
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    width:100%;
-
+    align-items: start;
+    max-width: 100%;
+    width: fit-content; /* Ширина по содержимому, но с ограничениями */
+    box-sizing: border-box;
 }
 .path-container {
     display: flex;
     flex-direction: row;
     align-items: center; 
-    justify-self: start;
-    justify-content: start;
+    gap: 7%;
+    width: fit-content; /* Ширина по содержимому, но с ограничениями */
+    box-sizing: border-box;
 }
 .path-container h2 {
     margin-right: 5%;
 }
 .sep {
-    margin: 0 0.6%;
     font-size: 150%;
 }
-.path {
+.path-part {
     display: flex;
+    align-items: center;
+    gap: 7%;
+}
+.folder-name {
     background-color: #d2dadb; 
     border-radius: 5px; 
-    padding: 2% 2%;
-    margin: 0;
+    padding: 7% 2%;
     cursor: pointer;
+    margin: 0;
 }
-.path font:hover {
+.folder-name font:hover {
     opacity: 60%;
 }

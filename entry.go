@@ -29,8 +29,8 @@ const (
 	Folder EntryType = "Folder"
 )
 
-// lsCloneInfo - содержит информацию для вывода на экран.
-type lsCloneInfo struct {
+// EntryInfo - содержит информацию для вывода на экран.
+type EntryInfo struct {
 	sync.Mutex
 	Name          string    `josn:"Name"`
 	Type          EntryType `json:"Type"`
@@ -38,21 +38,21 @@ type lsCloneInfo struct {
 	ConvertedSize string `json:"ConvertedSize"`
 }
 
-func NewlsCloneInfo(name string, isdir bool) *lsCloneInfo {
+func NewEntryInfo(name string, isdir bool) *EntryInfo {
 	if isdir {
-		return &lsCloneInfo{Name: name, Type: Folder}
+		return &EntryInfo{Name: name, Type: Folder}
 	}
-	return &lsCloneInfo{Name: name, Type: File}
+	return &EntryInfo{Name: name, Type: File}
 }
 
 // IsDir - проверяет является ли сущность директорией
-func (i *lsCloneInfo) IsDir() bool {
+func (i *EntryInfo) IsDir() bool {
 	return i.Type == Folder
 }
 
 // convertSize - возвращает размер, в зависимости от пересечение границы 1 ГБ / 1 МБ / 1 КБ,
 // в виде строки с указанием единиц измерения.
-func (i *lsCloneInfo) convertSize(prec int) {
+func (i *EntryInfo) convertSize(prec int) {
 	if i.size >= GIGABYTE {
 		i.ConvertedSize = strconv.FormatFloat(float64(i.size)/GIGABYTE, 'f', prec, 64) + " GB"
 	}
@@ -63,7 +63,7 @@ func (i *lsCloneInfo) convertSize(prec int) {
 }
 
 // IncreaseBy - блокирующее увеличение размера.
-func (i *lsCloneInfo) IncreaseBy(size int64) error {
+func (i *EntryInfo) IncreaseBy(size int64) error {
 	if i.Type == Folder || i.size == 0 {
 		i.Lock()
 		i.size += size
@@ -74,12 +74,12 @@ func (i *lsCloneInfo) IncreaseBy(size int64) error {
 }
 
 // GetSize - возвращает размер файла в байтах
-func (i *lsCloneInfo) GetSize() int64 {
+func (i *EntryInfo) GetSize() int64 {
 	return i.size
 }
 
 // calcSize - позволяет рассчитать размер директории
-func (i *lsCloneInfo) calcSize(path string) error {
+func (i *EntryInfo) calcSize(path string) error {
 	err := filepath.Walk(path,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -91,17 +91,14 @@ func (i *lsCloneInfo) calcSize(path string) error {
 			}
 			return nil
 		})
-	if err == nil {
-		i.convertSize(2)
-	}
 	return err
 }
 
-// getEntries - возвращает список с инофрмацией о сущностях в директории root
-func getEntries(root string) ([]*lsCloneInfo, error) {
+// getEntriesTable - возвращает список с инофрмацией о сущностях в директории root
+func getEntriesTable(root string) ([]*EntryInfo, error) {
 	eg := new(errgroup.Group)
 
-	var table []*lsCloneInfo
+	var table []*EntryInfo
 	entries, err := os.ReadDir(root)
 	if err != nil {
 		return nil, err
@@ -113,18 +110,18 @@ func getEntries(root string) ([]*lsCloneInfo, error) {
 			return nil, err
 		}
 
-		lsInfo := NewlsCloneInfo(entry.Name(), entry.IsDir())
+		enrtyInfo := NewEntryInfo(entry.Name(), entry.IsDir())
 		if entry.IsDir() {
 			eg.Go(func() error {
-				return lsInfo.calcSize(filepath.Join(root, entry.Name()))
+				return enrtyInfo.calcSize(filepath.Join(root, entry.Name()))
 			})
 		} else {
-			err = lsInfo.IncreaseBy(info.Size())
+			err = enrtyInfo.IncreaseBy(info.Size())
 			if err != nil {
 				return nil, err
 			}
 		}
-		table = append(table, lsInfo)
+		table = append(table, enrtyInfo)
 	}
 
 	err = eg.Wait()
