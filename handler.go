@@ -35,6 +35,8 @@ func checkInput(path string, sort string) (bool, error) {
 
 func getEntriesTableHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
+	w.Header().Set("Content-Type", "application/json")
+
 	sortHeader := r.Form.Get("sort")
 	if sortHeader == "" {
 		sortHeader = "asc"
@@ -43,14 +45,14 @@ func getEntriesTableHandler(w http.ResponseWriter, r *http.Request) {
 
 	sortType, err := checkInput(rootHeader, sortHeader)
 	if err != nil {
-		fmt.Fprintln(w, err.Error())
+		fmt.Fprintln(w, fmt.Sprint("{\"Error\": \"", err.Error(), "\" }"))
 		log.Fatalln(w, err.Error())
 		return
 	}
 
 	table, err := getEntriesTable(rootHeader)
 	if err != nil {
-		fmt.Fprintln(w, err.Error())
+		fmt.Fprintln(w, fmt.Sprint("{\"Error\": \"", err.Error(), "\" }"))
 		log.Fatalln(w, err.Error())
 		return
 	}
@@ -68,11 +70,10 @@ func getEntriesTableHandler(w http.ResponseWriter, r *http.Request) {
 
 	bytes, err := json.Marshal(table)
 	if err != nil {
-		fmt.Fprintln(w, err.Error())
+		fmt.Fprintln(w, fmt.Sprint("{\"Error\": \"", err.Error(), "\" }"))
 		log.Fatalln(w, err.Error())
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintln(w, string(bytes))
 }
 

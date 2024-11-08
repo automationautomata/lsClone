@@ -1,6 +1,6 @@
 var currentroot = "/home/alexd/Projects";
 var currentsort = "asc";
-const pathseparator = '\\';
+const pathseparator = '/';
 
 function fillTable(root, sort="") {
     $.ajax({
@@ -12,6 +12,12 @@ function fillTable(root, sort="") {
             sort: sort
         },
         success: function(entriesInfo){
+            console.log(entriesInfo);
+
+            if ("Error" in entriesInfo){
+                alert(entriesInfo["Error"])
+                return
+            }
             console.log(entriesInfo);
             console.log(entriesInfo, document.getElementsByTagName("tbody"));
             tableBody = document.getElementsByTagName("tbody")[0];
@@ -59,8 +65,20 @@ function fillTable(root, sort="") {
 window.addEventListener("load", (event) => {
     console.log("page is fully loaded");
     console.log(document.getElementById("backbutton"))
+    var folders = currentroot.split(pathseparator).filter((val, i, arr) => { return val !== "" });
+    var parent = document.getElementsByClassName('path-container')[0]
+    for (var i = 0; i < folders.length; i++) {
+        next_folder = '<div class="path-part">' + 
+                            '<div class="sep">/</div>' +
+                            '<div class="folder-name">' +
+                                '<font color="blue">' + 
+                                    folders[i] + 
+                                '</font>' +
+                            '</div>' +
+                      '</div>';
+        parent.innerHTML += next_folder;
+    }
     fillTable(currentroot)
-    document.querySelectorAll('td').forEach((item) => {console.log(item)});
 
     document.getElementById("backbutton").addEventListener('click', function (e) {
         folders = document.getElementsByClassName("path-part");

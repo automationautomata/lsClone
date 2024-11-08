@@ -27,3 +27,41 @@
 2024/11/08 11:25:24 Запуск
 2024/11/08 11:25:24 Сервер работает на порту 8086
 2024/11/08 11:27:06 &{0xc0001b6090 0xc00016a000 {} 0xbc3ec0 true false false false {{} 0} {0 0} 0xc00008a300 {0xc00017a000 map[] false false} map[] false 73 -1 200 false false false [] {{} 0} [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] [0 0 0 0 0 0 0 0 0 0] [0 0 0] 0xc0002b70a0 {{} 0}} open C:\Users\alexd\AppData\Local\ElevatedDiagnostics: Access is denied.
+2024/11/08 11:42:36 Запуск
+2024/11/08 11:42:36 Сервер работает на порту 8086
+2024/11/08 11:43:04 &{0xc00020a000 0xc000148000 {} 0x4cc860 true false false false {{} 0} {0 0} 0xc000146040 {0xc0002840e0 map[] false false} map[] false 64 -1 200 false false false [] {{} 0} [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] [0 0 0 0 0 0 0 0 0 0] [0 0 0] 0xc00029a000 {{} 0}} Корневая директория не существует
+2024/11/08 11:50:07 Запуск
+2024/11/08 11:50:07 Сервер работает на порту 8086
+2024/11/08 11:50:11 &{0xc00022c000 0xc000236000 {} 0x4cc860 true false false false {{} 0} {0 0} 0xc0002340c0 {0xc0002380e0 map[] false false} map[] false 64 -1 200 false false false [] {{} 0} [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] [0 0 0 0 0 0 0 0 0 0] [0 0 0] 0xc00024c000 {{} 0}} Корневая директория не существует
+2024/11/08 11:50:20 Запуск
+2024/11/08 11:50:20 Сервер работает на порту 8086
+2024/11/08 11:55:27 exit reason: http: Server closed
+2024/11/08 11:55:28 Запуск
+2024/11/08 11:55:28 Сервер работает на порту 8086
+2024/11/08 11:57:23 exit reason: http: Server closed
+2024/11/08 11:57:25 Запуск
+2024/11/08 11:57:25 Сервер работает на порту 8086
+2024/11/08 12:03:30 &{0xc000198000 0xc00030e360 {} 0x4cc860 true false false false {{} 0} {0 0} 0xc000462000 {0xc000002460 map[] false false} map[] false 56 -1 200 false false false [] {{} 0} [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] [0 0 0 0 0 0 0 0 0 0] [0 0 0] 0xc000424a10 {{} 0}} open /home/alexd/.hasher/chroot/boot: permission denied
+2024/11/08 12:08:45 Запуск
+2024/11/08 12:08:45 Сервер работает на порту 8086
+2024/11/08 12:10:30 &{0xc000204120 0xc00039f440 {} 0x4cc860 true false false false {{} 0} {0 0} 0xc000230000 {0xc00022a540 map[] false false} map[] false 70 -1 200 false false false [] {{} 0} [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] [0 0 0 0 0 0 0 0 0 0] [0 0 0] 0xc000228e70 {{} 0}} open /home/alexd/.hasher/chroot/boot: permission denied
+2024/11/08 12:11:06 Запуск
+2024/11/08 12:11:06 Сервер работает на порту 8086
+2024/11/08 12:11:24 &{0xc000140000 0xc000394120 {} 0x4cc860 true false false false {{} 0} {0 0} 0xc000146140 {0xc00039c0e0 map[] false false} map[] false 70 -1 200 false false false [] {{} 0} [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] [0 0 0 0 0 0 0 0 0 0] [0 0 0] 0xc0003728c0 {{} 0}} open /home/alexd/.hasher/chroot/boot: permission denied
+2024/11/08 12:12:52 Запуск
+2024/11/08 12:12:52 Сервер работает на порту 8086
+2024/11/08 12:13:20 Запуск
+2024/11/08 12:13:20 Сервер работает на порту 8086
+2024/11/08 12:13:28 &{0xc000172090 0xc00014a360 {} 0x522c60 true false false false {{} 0} {0 0} 0xc000114340 {0xc00017a0e0 map[Content-Type:[application/json]] false false} map[Content-Type:[application/json]] true 67 -1 200 false false false [] {{} 0} [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] [0 0 0 0 0 0 0 0 0 0] [0 0 0] 0xc000110070 {{} 0}} Укажите корневую директорию
+2024/11/08 12:13:48 Запуск
+2024/11/08 12:13:48 Сервер работает на порту 8086
+2024/11/08 12:13:58 &{0xc000288000 0xc0002aa120 {} 0x522c60 true false false false {{} 0} {0 0} 0xc0001bc0c0 {0xc0002f20e0 map[Content-Type:[application/json]] false false} map[Content-Type:[application/json]] true 70 -1 200 false false false [] {{} 0} [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] [0 0 0 0 0 0 0 0 0 0] [0 0 0] 0xc0002fa000 {{} 0}} open /home/alexd/.hasher/chroot/boot: permission denied
+2024/11/08 12:15:20 Запуск
+2024/11/08 12:15:20 Сервер работает на порту 8086
+2024/11/08 12:15:49 &{0xc0000ec2d0 0xc000124360 {} 0x522c60 true false false false {{} 0} {0 0} 0xc00013e6c0 {0xc00012a460 map[Content-Type:[application/json]] false false} map[Content-Type:[application/json]] true 70 -1 200 false false false [] {{} 0} [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] [0 0 0 0 0 0 0 0 0 0] [0 0 0] 0xc00013ae00 {{} 0}} open /home/alexd/.hasher/chroot/boot: permission denied
+2024/11/08 12:18:00 Запуск
+2024/11/08 12:18:00 Сервер работает на порту 8086
+2024/11/08 12:18:16 &{0xc0000a2120 0xc000384120 {} 0x522c60 true false false false {{} 0} {0 0} 0xc0001ca200 {0xc00038c0e0 map[Content-Type:[application/json]] false false} map[Content-Type:[application/json]] true 70 -1 200 false false false [] {{} 0} [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] [0 0 0 0 0 0 0 0 0 0] [0 0 0] 0xc0003628c0 {{} 0}} open /home/alexd/.hasher/chroot/boot: permission denied
+2024/11/08 12:18:58 Запуск
+2024/11/08 12:18:58 Сервер работает на порту 8086
+2024/11/08 12:19:25 &{0xc0001aa000 0xc00031d440 {} 0x4cc860 true false false false {{} 0} {0 0} 0xc00022e000 {0xc000228460 map[Content-Type:[application/json]] false false} map[Content-Type:[application/json]] true 70 -1 200 false false false [] {{} 0} [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] [0 0 0 0 0 0 0 0 0 0] [0 0 0] 0xc000226150 {{} 0}} open /home/alexd/.hasher/chroot/boot: permission denied
