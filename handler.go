@@ -46,14 +46,14 @@ func getEntriesTableHandler(w http.ResponseWriter, r *http.Request) {
 	sortType, err := checkInput(rootHeader, sortHeader)
 	if err != nil {
 		fmt.Fprintln(w, fmt.Sprint("{\"Error\": \"", err.Error(), "\" }"))
-		log.Fatalln(w, err.Error())
+		log.Println(w, err.Error())
 		return
 	}
 
 	table, err := getEntriesTable(rootHeader)
 	if err != nil {
 		fmt.Fprintln(w, fmt.Sprint("{\"Error\": \"", err.Error(), "\" }"))
-		log.Fatalln(w, err.Error())
+		log.Println(w, err.Error())
 		return
 	}
 	for i := range table {
@@ -71,7 +71,7 @@ func getEntriesTableHandler(w http.ResponseWriter, r *http.Request) {
 	bytes, err := json.Marshal(table)
 	if err != nil {
 		fmt.Fprintln(w, fmt.Sprint("{\"Error\": \"", err.Error(), "\" }"))
-		log.Fatalln(w, err.Error())
+		log.Println(w, err.Error())
 		return
 	}
 	fmt.Fprintln(w, string(bytes))
