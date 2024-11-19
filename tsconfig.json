@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "NodeNext",
+    "outDir": "./ui/static",
+    "rootDir": "./ui/static/typescript",
+    "paths": {
+      "*": ["./ui/static/typescript/node_modules/*"]
+    }
+  },
+  "include": [
+      "./ui/static"
+  ],
+  "exclude": [
+    "**/*.spec.ts"
+  ]
+}

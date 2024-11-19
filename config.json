@@ -1,4 +1,5 @@
 {
     "port": "8086",
-    "logspath": "tmp.log"
+    "logspath": "tmp.log",
+    "startroot": "."
 }

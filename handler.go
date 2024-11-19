@@ -13,37 +13,37 @@ import (
 	"text/template"
 )
 
-func checkInput(path string, sort string) (bool, error) {
+func checkPath(path string) error {
 	if path == "" {
-		return false, errors.New("Укажите корневую директорию")
-
+		return errors.New("Укажите директорию")
 	}
 	if _, err := os.Stat(path); err != nil {
 		fmt.Println(err.Error())
-		return false, errors.New("Корневая директория не существует")
+		return errors.New("Директория не существует")
 	}
-
-	switch strings.ToLower(sort) {
-	case "asc":
-		return true, nil
-	case "desc":
-		return false, nil
-	default:
-		return false, errors.New("Указан неверный тип сортировки")
-	}
+	return nil
 }
 
 func getEntriesTableHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	w.Header().Set("Content-Type", "application/json")
 
-	sortHeader := r.Form.Get("sort")
-	if sortHeader == "" {
-		sortHeader = "asc"
+	var sortType bool
+	switch strings.ToLower(r.Form.Get("sort")) {
+	case "asc":
+		sortType = true
+	case "desc":
+		sortType = false
+	default:
+		error_text := "Указан неверный тип сортировки"
+		fmt.Fprintln(w, fmt.Sprint("{\"Error\": \"", error_text, "\" }"))
+		log.Println(w, error_text)
+		return
 	}
+
 	rootHeader := r.Form.Get("root")
 
-	sortType, err := checkInput(rootHeader, sortHeader)
+	err := checkPath(rootHeader)
 	if err != nil {
 		fmt.Fprintln(w, fmt.Sprint("{\"Error\": \"", err.Error(), "\" }"))
 		log.Println(w, err.Error())
@@ -77,7 +77,12 @@ func getEntriesTableHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(bytes))
 }
 
-func createQueryHandler(staticsDir string, htmlPath string) *http.ServeMux {
+type ViewData struct {
+	Separator string
+	Folders   []string
+}
+
+func createQueryHandler(staticsDir string, startRoot string, htmlPath string) *http.ServeMux {
 	mux := http.NewServeMux()
 	tpl := template.Must(template.ParseFiles(htmlPath))
 
@@ -85,8 +90,9 @@ func createQueryHandler(staticsDir string, htmlPath string) *http.ServeMux {
 	staticsPrefix := fmt.Sprint("/", filepath.Base(staticsDir), "/")
 	mux.Handle(staticsPrefix, http.StripPrefix(staticsPrefix, fs))
 
+	var sep = string(filepath.Separator)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		tpl.Execute(w, nil)
+		tpl.Execute(w, &ViewData{sep, strings.Split(startRoot, sep)})
 	})
 	mux.HandleFunc("/fs", getEntriesTableHandler)
 

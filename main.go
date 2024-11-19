@@ -17,8 +17,9 @@ import (
 )
 
 type config struct {
-	Port     string `json:"port"`
-	LogsPath string `json:"logspath"`
+	Port      string `json:"port"`
+	LogsPath  string `json:"logspath"`
+	StartRoot string `json:"startroot"`
 }
 
 func readConfig(path string) (*config, error) {
@@ -36,14 +37,20 @@ func readConfig(path string) (*config, error) {
 	config := &config{}
 	err = json.Unmarshal(bytes, &config)
 	if err != nil {
-		return nil, errors.New("Файл конфигурации не найден")
+		return nil, errors.New("Файл конфигурации некорректен")
+	}
+
+	if err = checkPath(config.StartRoot); err != nil {
+		return nil, errors.New(fmt.Sprint("Начальная корневая директория неверна:", err.Error()))
 	}
 	return config, nil
 }
 
 func main() {
 	portFlag := flag.String("port", "", "Порт, на котором работает сервер")
+	startRootFlag := flag.String("start-root", "", "Начальная корневая директория")
 	flag.Parse()
+
 	fmt.Println("Запуск")
 	mainCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -53,7 +60,6 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
-	port := config.Port
 
 	file, err := os.OpenFile(config.LogsPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err == nil {
@@ -63,11 +69,17 @@ func main() {
 	}
 	log.Println("Запуск")
 
+	port := config.Port
+	startRoot := config.StartRoot
+
 	if *portFlag != "" {
 		port = *portFlag
 	}
+	if *startRootFlag != "" {
+		startRoot = *startRootFlag
+	}
 
-	mux := createQueryHandler("ui/static", "ui/html/index.html")
+	mux := createQueryHandler("ui/static", startRoot, "ui/html/index.html")
 	srv := &http.Server{
 		Addr:    fmt.Sprint(":", port),
 		Handler: mux,

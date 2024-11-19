@@ -5,13 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Список с кнопками</title>
     <link rel="stylesheet" type="text/css" href="static/style.css">
-    <script type="text/javascript" src="static/script.js"></script>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script>var exports = {};</script>
+    <script type="module" src="static/script.js"></script>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 </head>
 <body>
 <div class="navigation">
     <div class="path-container">
         <h2>Путь</h2>
+        {{ range .Folders }}
+        <div class="path-part">
+            <div class="sep">
+                {{ .Separator }}
+            </div>
+            <div class="folder-name">
+                <font color="blue">
+                    {{ . }}
+                </font>
+            </div>
+        </div>
+        {{ end }}
     </div>
     <button id="backbutton">Назад</button>
 </div>
