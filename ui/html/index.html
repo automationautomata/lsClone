@@ -6,8 +6,9 @@
     <title>Список с кнопками</title>
     <link rel="stylesheet" type="text/css" href="static/style.css">
     <script>var exports = {};</script>
-    <script type="module" src="static/script.js"></script>
+    <script src="https://requirejs.org/docs/release/2.3.5/minified/require.js"></script>
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="module" src="static/script.js"></script>
 </head>
 <body>
 <div class="navigation">
@@ -15,13 +16,9 @@
         <h2>Путь</h2>
         {{ range .Folders }}
         <div class="path-part">
-            <div class="sep">
-                {{ .Separator }}
-            </div>
+            <div class="sep">{{$.Separator}}</div>
             <div class="folder-name">
-                <font color="blue">
-                    {{ . }}
-                </font>
+                <font color="blue">{{.}}</font>
             </div>
         </div>
         {{ end }}

@@ -29,16 +29,22 @@ func getEntriesTableHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var sortType bool
-	switch strings.ToLower(r.Form.Get("sort")) {
-	case "asc":
+	if r.Form.Has("sort") {
+		switch strings.ToLower(r.Form.Get("sort")) {
+		case "asc":
+			sortType = true
+		case "":
+			sortType = true
+		case "desc":
+			sortType = false
+		default:
+			error_text := "Указан неверный тип сортировки"
+			fmt.Fprintln(w, fmt.Sprint("{\"Error\": \"", error_text, "\" }"))
+			log.Println(w, error_text)
+			return
+		}
+	} else {
 		sortType = true
-	case "desc":
-		sortType = false
-	default:
-		error_text := "Указан неверный тип сортировки"
-		fmt.Fprintln(w, fmt.Sprint("{\"Error\": \"", error_text, "\" }"))
-		log.Println(w, error_text)
-		return
 	}
 
 	rootHeader := r.Form.Get("root")
@@ -91,8 +97,15 @@ func createQueryHandler(staticsDir string, startRoot string, htmlPath string) *h
 	mux.Handle(staticsPrefix, http.StripPrefix(staticsPrefix, fs))
 
 	var sep = string(filepath.Separator)
+	folders := strings.Split(startRoot, sep)
+	if folders[0] == "" {
+		folders = folders[1:]
+	}
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		tpl.Execute(w, &ViewData{sep, strings.Split(startRoot, sep)})
+		err := tpl.Execute(w, &ViewData{sep, folders})
+		if err != nil {
+			log.Println(err.Error())
+		}
 	})
 	mux.HandleFunc("/fs", getEntriesTableHandler)
 

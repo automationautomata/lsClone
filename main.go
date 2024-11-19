@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"runtime"
 	"syscall"
 
 	"golang.org/x/sync/errgroup"
@@ -40,6 +42,13 @@ func readConfig(path string) (*config, error) {
 		return nil, errors.New("Файл конфигурации некорректен")
 	}
 
+	if config.StartRoot == "." {
+		_, file, _, ok := runtime.Caller(1)
+		if ok {
+			config.StartRoot = filepath.Dir(file)
+		}
+		return config, nil
+	}
 	if err = checkPath(config.StartRoot); err != nil {
 		return nil, errors.New(fmt.Sprint("Начальная корневая директория неверна:", err.Error()))
 	}

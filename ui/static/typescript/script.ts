@@ -1,4 +1,5 @@
-import * as $ from 'jquery';
+
+import fetch from 'node-fetch';
 
 var currentroot = "";
 var pathseparator = '';
@@ -14,7 +15,10 @@ const GetEntries = (root: string, sort: string, handler: Function) => {
             root: root, 
             sort: sort
         },
-        success: handler
+        success: function ( data, status, XHR ) {
+            handler(data);
+        }
+    
     });
 }
 
