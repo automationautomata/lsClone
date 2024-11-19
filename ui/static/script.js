@@ -13,6 +13,7 @@ const GetEntries = (root, sort, handler) => {
             sort: sort
         },
         success: function (data, status, XHR) {
+            console.log(status, XHR);
             handler(data);
         }
     });

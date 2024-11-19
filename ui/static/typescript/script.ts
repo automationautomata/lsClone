@@ -15,10 +15,10 @@ const GetEntries = (root: string, sort: string, handler: Function) => {
             root: root, 
             sort: sort
         },
-        success: function ( data, status, XHR ) {
+        success: function (data, status, XHR) {
+            console.log(status, XHR)
             handler(data);
         }
-    
     });
 }
 
