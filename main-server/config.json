@@ -1,0 +1,6 @@
+{
+    "port": "8086",
+    "logspath": "tmp.log",
+    "startroot": ".", 
+    "statisticsServerAddr": "http://localhost:80"
+}
