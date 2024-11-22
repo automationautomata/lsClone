@@ -1,24 +1,25 @@
-import * as $ from "jquery";
+import { Context } from "vm";
 
 var currentroot = "";
 var pathseparator = '';
 var currentsort = "asc";
 
-
 const GetEntries = (root: string, sort: string, handler: Function) => {
-    $.ajax({
-        url: '/fs',
-        method: 'get',
-        dataType: 'json',
-        data: {
-            root: root, 
-            sort: sort
-        },
-        success: function (data, status, XHR) {
-            console.log(status, XHR)
-            handler(data);
+    const Http = new XMLHttpRequest();
+    const url = `${location.href}/fs?root=${root}&sort=${sort}`
+    Http.open("GET", url, true);
+    console.log(root, sort);
+    Http.send();
+
+    Http.onreadystatechange = (e) => {
+        console.log(Http.readyState, Http.status)
+
+        if (Http.readyState == 4 && Http.status == 200) {
+            console.log(Http.responseText);
+            handler(JSON.parse(Http.responseText));
+
         }
-    });
+    }
 }
 
 const handleRowClick = (event: MouseEvent) => {

@@ -94,7 +94,6 @@ func createQueryHandler(staticsDir string, startRoot string, statisticsServerAdd
 	})
 	mux.HandleFunc("/fs", func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-
 		w.Header().Set("Content-Type", "application/json")
 
 		r.ParseForm()
@@ -127,8 +126,7 @@ func createQueryHandler(staticsDir string, startRoot string, statisticsServerAdd
 				sumSize += entry.GetSize()
 			}
 			data := fmt.Sprint("{\"path\": \"", rootHeader, "\", \"size\": \"",
-				sumSize, "\", \"time\": \"", timeDelta, "\" }")
-
+				sumSize, "\", \"time\": \"", timeDelta.Nanoseconds(), "\" }")
 			resp, err := http.Post(statisticsServerAddr, "application/json", bytes.NewBuffer([]byte(data)))
 			if err != nil {
 				log.Println(err.Error())

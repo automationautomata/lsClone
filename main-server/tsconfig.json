@@ -4,14 +4,14 @@
     "module": "NodeNext",
     "outDir": "./ui/static",
     "rootDir": "./ui/static/typescript",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
+    // "typeRoots": [
+    //   "node_modules/@types"
+    // ],
 
   },
-  "include": [
-      "./ui/static"
-  ],
+  // "include": [
+  //     "./ui/static"
+  // ],
   "exclude": [
     "**/*.spec.ts"
   ]

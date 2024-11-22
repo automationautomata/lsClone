@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
-    "target": "ES6",
-    "module": "NodeNext",
-    "outDir": "./html",
-    "rootDir": "./html",
+    "target": "ES5",
+    "module": "ESNext",
+    "outDir": "server/html",
+    "rootDir": "server/html",
     "typeRoots": [
       "node_modules/@types"
     ],
+    "allowSyntheticDefaultImports": true, 
+    "skipLibCheck": true, 
+    "noUnusedLocals": true, 
   },
-  // "include": [
-  //     "./html"
-  // ],
   "exclude": [
     "**/*.spec.ts"
   ]

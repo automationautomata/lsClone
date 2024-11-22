@@ -1,46 +1,22 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const $ = __importStar(require("jquery"));
 var currentroot = "";
 var pathseparator = '';
 var currentsort = "asc";
 const GetEntries = (root, sort, handler) => {
-    $.ajax({
-        url: '/fs',
-        method: 'get',
-        dataType: 'json',
-        data: {
-            root: root,
-            sort: sort
-        },
-        success: function (data, status, XHR) {
-            console.log(status, XHR);
-            handler(data);
+    const Http = new XMLHttpRequest();
+    const url = `${location.href}/fs?root=${root}&sort=${sort}`;
+    Http.open("GET", url, true);
+    Http.setRequestHeader("Content-Type", "application/json");
+    console.log(root, sort);
+    Http.send();
+    Http.onreadystatechange = (e) => {
+        console.log(Http.readyState, Http.status);
+        if (Http.readyState == 4 && Http.status == 200) {
+            console.log(Http.responseText);
+            handler(JSON.parse(Http.responseText));
         }
-    });
+    };
 };
 const handleRowClick = (event) => {
     console.log(event.currentTarget);

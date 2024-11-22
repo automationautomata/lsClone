@@ -1,6 +1,6 @@
 {
-    "port": "8086",
+    "port": "8087",
     "logspath": "tmp.log",
     "startroot": ".", 
-    "statisticsServerAddr": "http://localhost:80"
+    "statisticsServerAddr": "http://localhost:80/table/table.php"
 }
