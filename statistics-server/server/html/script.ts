@@ -1,4 +1,3 @@
-import Chart from 'chart.js'
 const fillTable = (data) => {
     const errorprint = document.getElementById("errorprint")!;
 
@@ -46,7 +45,7 @@ const GetData = (path, handler) => {
         }
     }
 }
-
+//@ts-ignore
 var chart: Chart;
 
 const ShowChart = (x, y, xName, yName) => {
@@ -55,6 +54,7 @@ const ShowChart = (x, y, xName, yName) => {
         chart.destroy();
     }
     const ctx = (<HTMLCanvasElement>document.getElementById("chart")).getContext('2d');
+    //@ts-ignore
     chart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -67,6 +67,9 @@ const ShowChart = (x, y, xName, yName) => {
             }]
         },
         options: {
+            legend: {
+                display: false
+            },
             scales: {
                 yAxes: [{
                     scaleLabel: {
@@ -94,7 +97,7 @@ window.addEventListener("load", (e) => {
         GetData("statistics/statistics.php", (data) => {
             var x = data["SizeArray"];
             var y = data["TimeDeltaArray"];
-            ShowChart(x, y, "Size", "Time")
+            ShowChart(y, x, "Time", "Size")
         });
     });    
 });

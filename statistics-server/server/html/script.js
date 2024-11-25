@@ -38,6 +38,7 @@ var GetData = function (path, handler) {
         }
     };
 };
+//@ts-ignore
 var chart;
 var ShowChart = function (x, y, xName, yName) {
     if (chart) {
@@ -45,18 +46,22 @@ var ShowChart = function (x, y, xName, yName) {
         chart.destroy();
     }
     var ctx = document.getElementById("chart").getContext('2d');
+    //@ts-ignore
     chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: x,
+            labels: y,
             datasets: [{
-                    data: y,
+                    data: x,
                     borderColor: 'blue',
                     borderWidth: 2,
                     fill: false
                 }]
         },
         options: {
+            legend  : {
+                display: false
+            },
             scales: {
                 yAxes: [{
                         scaleLabel: {
@@ -82,7 +87,7 @@ window.addEventListener("load", function (e) {
         GetData("statistics/statistics.php", function (data) {
             var x = data["SizeArray"];
             var y = data["TimeDeltaArray"];
-            ShowChart(x, y, "Size", "Time");
+            ShowChart(y, x, "Time", "Size");
         });
     });
 });
